@@ -6,8 +6,17 @@ from pathlib import Path
 
 app = Flask(__name__)
 
-_cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5183,http://127.0.0.1:5183").split(",")
-CORS(app, origins=[o.strip() for o in _cors_origins if o.strip()])
+_cors_origins = os.environ.get(
+    "CORS_ORIGINS",
+    "https://skill-bridge-ai-sigma-two.vercel.app"
+).split(",")
+
+CORS(
+    app,
+    origins=[o.strip() for o in _cors_origins if o.strip()],
+    allow_headers=["Content-Type"],
+    methods=["GET", "POST", "OPTIONS"]
+)
 
 DB_PATH = Path(__file__).parent / "skill_match.db"
 
