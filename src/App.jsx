@@ -1347,10 +1347,51 @@ function Gaps({ role, onAssessment }) {
   )
 }
 
-function Roadmap({ tasks, progress, onToggle, onAssessment }) {
+function Roadmap({ tasks, progress, onToggle, onAssessment, onReset }) {
   const doneCount = tasks.filter((task) => progress[task.id]).length
   const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
   const weeks = [...new Set(tasks.map((task) => task.week))]
+  const [confirmReset, setConfirmReset] = useState(false)
+
+  const handleReset = () => {
+    if (confirmReset) {
+      onReset()
+      setConfirmReset(false)
+    } else {
+      setConfirmReset(true)
+    }
+  }
+
+  const taskDurations = {
+    'Explore the': '30 min',
+    'Assess your': '20 min',
+    'Set a learning': '15 min',
+    'Practice': '45 min',
+    'Research job': '30 min',
+    'Review Week': '20 min',
+    'Learn': '45 min',
+    'Continue practicing': '45 min',
+    'Identify your': '30 min',
+    'Work on your': '60 min',
+    'Choose a': '30 min',
+    'Plan your': '30 min',
+    'Build the': '60 min',
+    'Test your': '30 min',
+    'Improve your': '45 min',
+    'Document your': '30 min',
+    'Ask for': '20 min',
+    'Apply feedback': '30 min',
+    'Prepare a': '20 min',
+    'Update your': '20 min',
+    'Complete your': '30 min',
+  }
+
+  const getDuration = (title) => {
+    for (const [key, value] of Object.entries(taskDurations)) {
+      if (title.startsWith(key)) return value
+    }
+    return '30 min'
+  }
 
   return (
     <section className="app-page">
@@ -1362,7 +1403,7 @@ function Roadmap({ tasks, progress, onToggle, onAssessment }) {
         </div>
         {tasks.length ? (
           <div className="roadmap-score">
-            <strong>{percent}%</strong>
+            <strong>{Math.min(percent, 100)}%</strong>
             <span>
               {doneCount} / {tasks.length} tasks
             </span>
@@ -1371,40 +1412,128 @@ function Roadmap({ tasks, progress, onToggle, onAssessment }) {
       </div>
       {tasks.length ? (
         <>
-          <Progress value={percent} label="Roadmap completion" />
-          <div className="roadmap-grid">
-            {weeks.map((week, index) => (
-              <section key={week} className="week-card">
-                <div className="week-heading">
-                  <span>{index + 1}</span>
-                  <div>
-                    <strong>{week}</strong>
-                    <p>{weekPhases[index]}</p>
-                  </div>
-                </div>
-                {tasks.filter((task) => task.week === week).map((task) => (
-                  <div key={task.id} className={progress[task.id] ? 'roadmap-task done' : 'roadmap-task'}>
-                    <label>
-                      <input type="checkbox" checked={!!progress[task.id]} onChange={() => onToggle(task.id)} />
-                      <span className="checkbox-mark">
-                        <Icon name="check" size={12} stroke={3} />
-                      </span>
-                      <span>
-                        <strong>{task.title}</strong>
-                        <small>{task.detail}</small>
-                      </span>
-                    </label>
-                    {task.resource ? (
-                      <a className="task-resource" href={task.resource.url} target="_blank" rel="noreferrer">
-                        {task.resource.label}
-                        <Icon name="arrow" size={12} />
-                      </a>
-                    ) : null}
-                  </div>
-                ))}
-              </section>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+            <Progress value={Math.min(percent, 100)} label="Roadmap completion" />
+            <button
+              type="button"
+              onClick={handleReset}
+              style={{
+                padding: '8px 14px',
+                border: '1px solid var(--line)',
+                borderRadius: 8,
+                background: 'transparent',
+                color: 'var(--muted)',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {confirmReset ? 'Confirm reset?' : 'Reset progress'}
+            </button>
           </div>
+          <div className="roadmap-grid">
+            {weeks.map((week, index) => {
+              const weekTasks = tasks.filter((task) => task.week === week)
+              const weekDone = weekTasks.filter((t) => progress[t.id]).length
+              const weekPercent = weekTasks.length ? Math.round((weekDone / weekTasks.length) * 100) : 0
+              return (
+                <section key={week} className="week-card">
+                  <div className="week-heading">
+                    <span>{index + 1}</span>
+                    <div>
+                      <strong>{week}</strong>
+                      <p>{weekPhases[index]}</p>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        color: weekPercent === 100 ? 'var(--green)' : 'var(--blue)',
+                      }}
+                    >
+                      {weekDone} / {weekTasks.length}
+                    </span>
+                  </div>
+                  {weekTasks.map((task) => {
+                    const isDone = !!progress[task.id]
+                    return (
+                      <div key={task.id} className={`roadmap-task ${isDone ? 'done' : ''}`}>
+                        <label
+                          style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 10,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isDone}
+                            onChange={() => onToggle(task.id)}
+                            aria-label={`Mark "${task.title}" as complete`}
+                          />
+                          <span className="checkbox-mark">
+                            <Icon name="check" size={12} stroke={3} />
+                          </span>
+                          <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                              <strong
+                                style={{
+                                  color: isDone ? 'var(--muted-soft)' : 'var(--ink)',
+                                  fontSize: '13px',
+                                  textDecoration: isDone ? 'line-through' : 'none',
+                                  minWidth: 0,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {task.title}
+                              </strong>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  color: 'var(--muted-soft)',
+                                  fontWeight: 600,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {getDuration(task.title)}
+                              </span>
+                            </div>
+                            <small
+                              style={{
+                                color: isDone ? 'var(--muted-soft)' : 'var(--muted)',
+                                fontSize: '11px',
+                                lineHeight: 1.5,
+                                textDecoration: isDone ? 'line-through' : 'none',
+                                minWidth: 0,
+                                overflowWrap: 'break-word',
+                                wordBreak: 'normal',
+                              }}
+                            >
+                              {task.detail}
+                            </small>
+                          </span>
+                        </label>
+                        {task.resource ? (
+                          <a className="task-resource" href={task.resource.url} target="_blank" rel="noreferrer">
+                            {task.resource.label}
+                            <Icon name="arrow" size={12} />
+                          </a>
+                        ) : null}
+                      </div>
+                    )
+                  })}
+                </section>
+              )
+            })}
+          </div>
+          {percent === 100 && (
+            <p style={{ marginTop: 16, fontSize: '12px', color: 'var(--green)', textAlign: 'center' }}>
+              🎉 All 30 days complete! Great work building momentum.
+            </p>
+          )}
         </>
       ) : (
         <EmptyState icon="calendar" title="Your roadmap starts with a direction" copy="Complete the assessment to create a practical local plan from your strongest career match." action="Complete assessment" onAction={onAssessment} />
@@ -1932,7 +2061,7 @@ function BestCareerMatches({ recommendations, onNavigate }) {
   );
 }
 
-function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
+function Overview({ profile, recommendations, tasks, progress, onNavigate, downloadReport }) {
   const doneCount = tasks.filter((task) => progress[task.id]).length
   const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
   const nextTask = tasks.find((task) => !progress[task.id])
@@ -2113,6 +2242,260 @@ function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
             <SmartSkillGapAnalyzer profile={profile} recommendations={recommendations} />
           ) : null}
 
+          {profile && recommendations && recommendations.length ? (
+            <div style={{ marginTop: 24, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="primary-button compact"
+                onClick={downloadReport}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                }}
+              >
+                <Icon name="arrow" size={15} />
+                Download Career Report
+              </button>
+              <p style={{ color: 'var(--muted-soft)', fontSize: '11px', alignSelf: 'center', margin: 0 }}>
+                Opens your browser's print dialog. Choose "Save as PDF" to download.
+              </p>
+            </div>
+          ) : null}
+
+          <div className="career-report-print" aria-label="Printable career report">
+            <div className="report-header">
+              <h1 style={{ margin: 0, fontSize: '22px', color: 'var(--ink)' }}>Career Report</h1>
+              <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--muted-soft)' }}>
+                SkillBridge AI · Local skill-based guidance · Not a guarantee of job outcomes
+              </p>
+            </div>
+
+            {profile ? (
+              <>
+                <section className="report-section">
+                  <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>Profile</h2>
+                  <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 10 }}>
+                    <div style={{ minWidth: 140 }}>
+                      <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Name</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'var(--ink)' }}>{profile.name || 'Not provided'}</p>
+                    </div>
+                    <div style={{ minWidth: 140 }}>
+                      <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Education</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'var(--ink)' }}>{profile.education || 'Not provided'}</p>
+                    </div>
+                    <div style={{ minWidth: 140 }}>
+                      <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Target career</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'var(--ink)' }}>{profile.target || 'Not set'}</p>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="report-section">
+                  <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>Top Career Matches</h2>
+                  <div style={{ marginTop: 10 }}>
+                    {recommendations.slice(0, 5).map((rec, index) => (
+                      <div key={rec.id} style={{ marginBottom: 10, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: 'var(--muted-soft)',
+                              minWidth: 20,
+                            }}
+                          >
+                            #{index + 1}
+                          </span>
+                          <strong style={{ fontSize: '13px', color: 'var(--ink)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {rec.title}
+                          </strong>
+                          <strong style={{ fontSize: '12px', color: rec.score >= 60 ? 'var(--green)' : rec.score >= 30 ? 'var(--amber)' : 'var(--rose)', marginLeft: 'auto' }}>
+                            {rec.score}%
+                          </strong>
+                        </div>
+                        <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--muted)', lineHeight: 1.45, minWidth: 0 }}>
+                          {rec.description}
+                        </p>
+                        {rec.skillMatches && rec.skillMatches.length && (
+                          <p style={{ margin: '6px 0 0', fontSize: '10px', color: 'var(--green)', fontWeight: 700 }}>
+                            Matched: {rec.skillMatches.join(', ')}
+                          </p>
+                        )}
+                        {rec.missingSkills && rec.missingSkills.length && (
+                          <p style={{ margin: '4px 0 0', fontSize: '10px', color: 'var(--rose)', fontWeight: 700 }}>
+                            To build: {rec.missingSkills.join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {focused && (
+                  <>
+                    <section className="report-section">
+                      <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>Skill Gap Summary for {focused.title}</h2>
+                      <div style={{ marginTop: 10, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                        <div style={{ minWidth: 120 }}>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Total required skills</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--ink)', fontWeight: 800 }}>
+                            {focused.skills?.length || 0}
+                          </p>
+                        </div>
+                        <div style={{ minWidth: 120 }}>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Skills matched</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--green)', fontWeight: 800 }}>
+                            {focused.skillMatches?.length || 0}
+                          </p>
+                        </div>
+                        <div style={{ minWidth: 120 }}>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Skills missing</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--rose)', fontWeight: 800 }}>
+                            {focused.missingSkills?.length || 0}
+                          </p>
+                        </div>
+                        <div style={{ minWidth: 120 }}>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Skill coverage</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--blue)', fontWeight: 800 }}>
+                            {focused.skills?.length ? Math.round((focused.skillMatches.length / focused.skills.length) * 100) : 0}%
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="report-section">
+                      <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>Matched Skills</h2>
+                      <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {(focused.skillMatches || []).map((skill) => (
+                          <span
+                            key={skill}
+                            style={{
+                              display: 'inline-block',
+                              padding: '4px 9px',
+                              color: 'var(--green)',
+                              border: '1px solid var(--green-soft)',
+                              borderRadius: 6,
+                              background: 'var(--green-soft)',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {(focused.skillMatches || []).length === 0 && (
+                          <p style={{ margin: 0, fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None yet.</p>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="report-section">
+                      <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>Missing Skills</h2>
+                      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+                        {(focused.missingSkills || []).map((skill, index) => {
+                          const priority = index === 0 ? 'High' : index <= 2 ? 'Medium' : 'Low'
+                          const pcolor = priority === 'High' ? 'var(--rose)' : priority === 'Medium' ? 'var(--amber)' : 'var(--green)'
+                          return (
+                            <div
+                              key={skill}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                minWidth: 0,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  color: pcolor,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  padding: '2px 8px',
+                                  borderRadius: 11,
+                                  border: `1px solid ${pcolor}40`,
+                                  background: `${pcolor}15`,
+                                  flexShrink: 0,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {priority} priority
+                              </span>
+                              <span style={{ fontSize: '12px', color: 'var(--ink)', minWidth: 0, flex: 1 }}>{skill}</span>
+                            </div>
+                          )
+                        })}
+                        {(focused.missingSkills || []).length === 0 && (
+                          <p style={{ margin: 0, fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None — you meet all requirements.</p>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="report-section">
+                      <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>Learning Priorities</h2>
+                      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+                        {(focused.learning || []).map((skill, index) => (
+                          <div key={skill} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, minWidth: 0 }}>
+                            <span style={{ fontSize: '11px', color: 'var(--blue)', fontWeight: 800, flexShrink: 0 }}>{index + 1}.</span>
+                            <span style={{ fontSize: '12px', color: 'var(--ink)', minWidth: 0, lineHeight: 1.45 }}>{skill}</span>
+                          </div>
+                        ))}
+                        {(focused.learning || []).length === 0 && (
+                          <p style={{ margin: 0, fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>No learning steps listed.</p>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="report-section">
+                      <h2 style={{ margin: 0, fontSize: '15px', color: 'var(--ink)' }}>30-Day Roadmap Progress</h2>
+                      <div style={{ marginTop: 10, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                        <div style={{ minWidth: 120 }}>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Tasks complete</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--ink)', fontWeight: 800 }}>
+                            {doneCount} of {tasks.length}
+                          </p>
+                        </div>
+                        <div style={{ minWidth: 120 }}>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Completion</p>
+                          <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--blue)', fontWeight: 800 }}>
+                            {percent}%
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 10, height: 8, background: '#1e2d4d', borderRadius: 4, overflow: 'hidden', width: '100%' }}>
+                        <div style={{ height: '100%', width: `${Math.min(percent, 100)}%`, background: 'var(--blue)' }} />
+                      </div>
+                      <p style={{ margin: '6px 0 0', fontSize: '10px', color: 'var(--muted-soft)' }}>
+                        Progress is saved in your browser and reflects your current roadmap status.
+                      </p>
+                    </section>
+                  </>
+                )}
+
+                <section className="report-section" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
+                  <h2 style={{ margin: 0, fontSize: '14px', color: 'var(--ink)' }}>About this report</h2>
+                  <p style={{ margin: '6px 0 0', fontSize: '10px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                    This report was generated from your local profile and career-matching data in SkillBridge AI.
+                    Match percentages are rule-based estimates based on your skills, interests, work style, and target
+                    role — not guaranteed job outcomes or real AI predictions. No personal data is sent to a server
+                    unless you explicitly save your profile.
+                  </p>
+                </section>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <p style={{ color: 'var(--muted)', fontSize: '13px' }}>
+                  No profile data available. Complete the My Profile assessment to generate a report.
+                </p>
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <EmptyState icon="sparkles" title="Build your career starting point" copy="Add your skills, interests, education, and work style. We will use transparent local rules to organize your next steps." action="Start assessment" onAction={() => onNavigate('assessment')} />
@@ -2123,7 +2506,7 @@ function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
 
 function Workspace({ profile, recommendations, progress, setProgress, active, onNavigate, onSaveProfile, onHome, saveState }) {
   const focused = recommendations.find((rec) => rec.id === profile?.target) || recommendations[0]
-  const tasks = profile ? getRoadmap(focused) : []
+  const tasks = profile ? getRoadmap(focused, focused?.missingSkills || []) : []
   const navItems = [
     { id: 'overview', icon: 'chart', label: 'Overview' },
     { id: 'assessment', icon: 'user', label: 'My profile' },
@@ -2134,6 +2517,14 @@ function Workspace({ profile, recommendations, progress, setProgress, active, on
 
   const toggleTask = (id) => {
     setProgress((current) => ({ ...current, [id]: !current[id] }))
+  }
+
+  const resetProgress = () => {
+    setProgress({})
+  }
+
+  const downloadReport = () => {
+    window.print()
   }
 
   const [comparedCareers, setComparedCareers] = useState([])
@@ -2171,9 +2562,9 @@ function Workspace({ profile, recommendations, progress, setProgress, active, on
   } else if (active === 'gaps') {
     page = <Gaps role={focused} onAssessment={() => onNavigate('assessment')} />
   } else if (active === 'roadmap') {
-    page = <Roadmap tasks={tasks} progress={progress} onToggle={toggleTask} onAssessment={() => onNavigate('assessment')} />
+    page = <Roadmap tasks={tasks} progress={progress} onToggle={toggleTask} onAssessment={() => onNavigate('assessment')} onReset={resetProgress} />
   } else {
-    page = <Overview profile={profile} recommendations={recommendations} tasks={tasks} progress={progress} onNavigate={onNavigate} />
+    page = <Overview profile={profile} recommendations={recommendations} tasks={tasks} progress={progress} onNavigate={onNavigate} downloadReport={downloadReport} />
   }
 
   return (

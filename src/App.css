@@ -513,12 +513,36 @@ footer > button:last-child { display: inline-flex; align-items: center; gap: 5px
   .report-card .primary-button { width: 100%; }
 }
 
+/* Print-only career report section - hidden on screen */
+.career-report-print { display: none; }
+
 /* Print-friendly assessment report */
 @media print {
   .app-sidebar, .app-header, .mobile-app-nav, .report-card button { display: none !important; }
-  .app-shell { display: block; background: var(--surface); }
-  .app-content { width: 100%; }
-  .app-page { width: 100%; padding: 12px; }
+  .app-shell { display: block; background: #ffffff !important; }
+  .app-content { width: 100%; background: #ffffff !important; }
+  .app-page { width: 100%; padding: 0; min-height: auto; background: #ffffff !important; }
   .gap-layout { gap: 10px; }
   .gap-overview, .analytics-card, .skills-panel, .learning-plan, .resource-panel { break-inside: avoid; box-shadow: none; }
+
+  /* Career report print layout */
+  .career-report-print { display: block !important; }
+  .app-page > :not(.career-report-print) { display: none !important; }
+  .career-report-print * { color: #1a203a !important; }
+  .career-report-print .metric-icon, .career-report-print .empty-state, .career-report-print .primary-button, .career-report-print .secondary-button, .career-report-print .card-footer-action, .career-report-print .card-action { display: none !important; }
+  .career-report-print h1, .career-report-print h2, .career-report-print strong { color: #1a203a !important; }
+  .career-report-print p, .career-report-print small, .career-report-print span { color: #1a203a !important; }
+  .career-report-print .roadmap-task { border-color: #c9d2e0 !important; background: #ffffff !important; }
+  .career-report-print .roadmap-task.done strong { color: #6b7a9d !important; }
+  .career-report-print .dashboard-card { border: 1px solid #c9d2e0 !important; background: #ffffff !important; break-inside: avoid; }
+  .career-report-print .dashboard-grid { display: block !important; gap: 16px !important; }
+  .career-report-print .dashboard-grid > * { width: 100% !important; }
+  .career-report-print .overview-metrics { display: block !important; gap: 12px !important; }
+  .career-report-print .overview-metrics article { width: 100% !important; break-inside: avoid; }
+  .career-report-print .report-section { break-inside: avoid; margin-bottom: 20px; }
+  .career-report-print .report-header { border-bottom: 2px solid #1a203a; padding-bottom: 12px; margin-bottom: 20px; }
+  .career-report-print .report-header h1 { font-size: 20px; }
+  .career-report-print a { color: #1a203a !important; text-decoration: underline; }
+  .career-report-print .task-resource { display: none !important; }
+  body { background: #ffffff !important; }
 }

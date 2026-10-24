@@ -288,7 +288,7 @@ export function getRecommendations(profile) {
 }
 
 
-export function getRoadmap(role) {
+export function getRoadmap(role, missingSkills = []) {
   const focus = role?.title || 'Career Exploration';
   const skills = role?.learning?.length
     ? role.learning
@@ -304,6 +304,11 @@ export function getRoadmap(role) {
   const resources = role?.resources || [];
   const taskPrefix = role?.id || 'explore';
 
+  const missingForWeek = (weekIndex) => {
+    const perWeek = Math.max(Math.ceil(missingSkills.length / 4), 1);
+    return missingSkills.slice(weekIndex * perWeek, (weekIndex + 1) * perWeek);
+  };
+
   const taskData = [
     // Week 1: Discover and plan (Days 1–7)
     {
@@ -316,7 +321,9 @@ export function getRoadmap(role) {
     },
     {
       title: `Explore ${skills[0]}`,
-      detail: 'Study the fundamentals and write five key points in your own words.',
+      detail: missingSkills.length
+        ? `Study the fundamentals of ${skills[0]} and note how it relates to ${missingSkills[0] || 'your target career'}.`
+        : 'Study the fundamentals and write five key points in your own words.',
       resource: resources[0],
     },
     {
@@ -340,7 +347,9 @@ export function getRoadmap(role) {
     // Week 2: Build core skills (Days 8–14)
     {
       title: `Learn ${skills[1] || 'a core skill'}`,
-      detail: 'Complete a focused beginner lesson and save your notes.',
+      detail: missingSkills.length > 1
+        ? `Begin learning ${skills[1] || 'a core skill'}, focusing on the concepts needed for ${missingSkills[1] || skills[0]}.`
+        : 'Complete a focused beginner lesson and save your notes.',
       resource: resources[1] || resources[0],
     },
     {
@@ -357,7 +366,9 @@ export function getRoadmap(role) {
     },
     {
       title: 'Work on your highest-priority gap',
-      detail: 'Spend a focused session practicing the skill you need most.',
+      detail: missingSkills.length
+        ? `Spend a focused session practicing ${missingSkills[0] || 'your highest-priority skill gap'}.`
+        : 'Spend a focused session practicing the skill you need most.',
       resource: resources[0],
     },
     {
@@ -372,12 +383,16 @@ export function getRoadmap(role) {
     // Week 3: Create evidence (Days 15–21)
     {
       title: `Explore ${skills[2] || 'a practical project'}`,
-      detail: 'Learn the basics of another useful skill for your selected career.',
+      detail: missingSkills.length > 2
+        ? `Learn the basics of ${skills[2] || 'a practical project'}, which connects to ${missingSkills[2] || 'your skill gaps'}.`
+        : 'Learn the basics of another useful skill for your selected career.',
       resource: resources[1] || resources[0],
     },
     {
       title: 'Choose a mini-project',
-      detail: 'Select a small problem that you can solve within the remaining days.',
+      detail: missingSkills.length
+        ? `Select a small project that lets you practice ${missingSkills.slice(0, 2).join(' and ') || 'your target skills'}.`
+        : 'Select a small problem that you can solve within the remaining days.',
     },
     {
       title: 'Plan your project',
