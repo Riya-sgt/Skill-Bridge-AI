@@ -2,6 +2,7 @@ export const roleCatalog = [
   {
     id: 'frontend-developer',
     title: 'Frontend Developer',
+    category: 'Web Development',
     icon: 'code',
     description: 'Build accessible, responsive interfaces that turn product ideas into useful web experiences.',
     interests: ['technology', 'design', 'problem solving'],
@@ -17,6 +18,7 @@ export const roleCatalog = [
   {
     id: 'data-analyst',
     title: 'Data Analyst',
+    category: 'Data Analytics',
     icon: 'chart',
     description: 'Use data to answer business questions and help teams make confident decisions.',
     interests: ['data', 'business', 'problem solving'],
@@ -32,6 +34,7 @@ export const roleCatalog = [
   {
     id: 'ui-ux-designer',
     title: 'UI/UX Designer',
+    category: 'UI/UX Design',
     icon: 'palette',
     description: 'Research, prototype, and refine digital products around real human needs.',
     interests: ['design', 'people', 'creativity'],
@@ -47,6 +50,7 @@ export const roleCatalog = [
   {
     id: 'business-analyst',
     title: 'Business Analyst',
+    category: 'Business and Product',
     icon: 'briefcase',
     description: 'Connect business goals, stakeholders, and evidence to improve how work gets done.',
     interests: ['business', 'people', 'problem solving'],
@@ -62,6 +66,7 @@ export const roleCatalog = [
   {
     id: 'ai-ml-engineer',
     title: 'AI/ML Engineer',
+    category: 'AI and Machine Learning',
     icon: 'brain',
     description: 'Develop and improve intelligent systems using software engineering and machine learning.',
     interests: ['technology', 'data', 'problem solving'],
@@ -77,6 +82,7 @@ export const roleCatalog = [
   {
     id: 'backend-developer',
     title: 'Backend Developer',
+    category: 'Web Development',
     icon: 'code',
     description: 'Build reliable server-side APIs, data models, and services behind real products.',
     interests: ['technology', 'data', 'problem solving'],
@@ -92,6 +98,7 @@ export const roleCatalog = [
   {
     id: 'full-stack-developer',
     title: 'Full-Stack Developer',
+    category: 'Web Development',
     icon: 'route',
     description: 'Connect frontend interfaces and backend services into complete product experiences.',
     interests: ['technology', 'design', 'problem solving'],
@@ -107,6 +114,7 @@ export const roleCatalog = [
   {
     id: 'data-scientist',
     title: 'Data Scientist',
+    category: 'Data Analytics',
     icon: 'chart',
     description: 'Turn messy data into evidence, models, and defensible decisions.',
     interests: ['data', 'technology', 'problem solving'],
@@ -122,6 +130,7 @@ export const roleCatalog = [
   {
     id: 'product-manager',
     title: 'Product Manager',
+    category: 'Business and Product',
     icon: 'target',
     description: 'Find the right problems, shape roadmaps, and guide teams toward shipped outcomes.',
     interests: ['business', 'people', 'technology'],
@@ -137,6 +146,7 @@ export const roleCatalog = [
   {
     id: 'cloud-engineer',
     title: 'Cloud Engineer',
+    category: 'Cloud Computing',
     icon: 'cloud',
     description: 'Design, deploy, and operate systems that run reliably in the cloud.',
     interests: ['technology', 'data', 'problem solving'],
@@ -152,6 +162,7 @@ export const roleCatalog = [
   {
     id: 'cybersecurity-analyst',
     title: 'Cybersecurity Analyst',
+    category: 'Cybersecurity',
     icon: 'shield',
     description: 'Protect systems, find weaknesses, and respond to security risks with clear evidence.',
     interests: ['technology', 'people', 'problem solving'],
@@ -167,6 +178,7 @@ export const roleCatalog = [
   {
     id: 'digital-marketing-analyst',
     title: 'Digital Marketing Analyst',
+    category: 'Digital Marketing',
     icon: 'megaphone',
     description: 'Turn audience and product data into measurable marketing stories and campaigns.',
     interests: ['business', 'design', 'creativity'],
@@ -182,6 +194,7 @@ export const roleCatalog = [
   {
     id: 'power-bi-developer',
     title: 'Power BI Developer',
+    category: 'Data Analytics',
     icon: 'chart',
     description: 'Build data models and interactive dashboards that turn raw data into decisions.',
     interests: ['data', 'business', 'problem solving'],
@@ -197,6 +210,7 @@ export const roleCatalog = [
   {
     id: 'qa-tester',
     title: 'QA Tester',
+    category: 'Web Development',
     icon: 'check',
     description: 'Find defects early by testing workflows, edge cases, and release readiness.',
     interests: ['technology', 'problem solving', 'people'],
@@ -212,6 +226,7 @@ export const roleCatalog = [
   {
     id: 'technical-project-coordinator',
     title: 'Technical Project Coordinator',
+    category: 'Business and Product',
     icon: 'calendar',
     description: 'Keep technical work moving by planning milestones, dependencies, and communication.',
     interests: ['business', 'people', 'technology'],

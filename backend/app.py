@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+import os
 from pathlib import Path
 
 app = Flask(__name__)
-CORS(app)
+
+_cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5183,http://127.0.0.1:5183").split(",")
+CORS(app, origins=[o.strip() for o in _cors_origins if o.strip()])
 
 DB_PATH = Path(__file__).parent / "skill_match.db"
 
@@ -59,7 +62,10 @@ def save_profile():
             "error": "Skills and interests must be lists"
         }), 400
 
-    workStyle = str(data.get("workStyle") or "")
+    workStyle = data.get("workStyle") or ""
+    if isinstance(workStyle, list):
+        workStyle = ",".join(map(str, workStyle))
+    workStyle = str(workStyle)
     target = str(data.get("target") or "")
 
     with sqlite3.connect(DB_PATH) as conn:

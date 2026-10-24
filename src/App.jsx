@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
 import { educationOptions, getRecommendations, getRoadmap, interestOptions, normalizeList, roleCatalog, workStyleOptions } from './data'
 import './App.css'
@@ -450,7 +450,10 @@ function Assessment({ profile, onSave, saveState }) {
             <p className="save-status success">Your profile was saved locally and to the backend.</p>
           ) : null}
           {saveState === 'error' ? (
-            <p className="save-status error">We could not reach the server. Your profile was saved on this device.</p>
+            <p className="save-status error">The server returned an error. Your profile was saved locally on this device only and has not been synced to the backend.</p>
+          ) : null}
+          {saveState === 'connection_error' ? (
+            <p className="save-status error">Unable to connect to the backend server. Your profile was saved locally on this device only and has not been synced to the backend.</p>
           ) : null}
         </div>
       </form>
@@ -458,7 +461,7 @@ function Assessment({ profile, onSave, saveState }) {
   )
 }
 
-function Recommendations({ recommendations, onFocus, onAssessment }) {
+function Recommendations({ recommendations, onFocus, onAssessment, comparedCareers, toggleComparison }) {
   return (
     <section className="app-page">
       <div className="page-heading split-heading">
@@ -473,7 +476,8 @@ function Recommendations({ recommendations, onFocus, onAssessment }) {
         </span>
       </div>
       {recommendations.length ? (
-        <div className="recommendation-grid">
+        <>
+          <div className="recommendation-grid">
           {recommendations.map((rec, index) => (
             <article key={rec.id} className={index === 0 ? 'recommendation-card featured' : 'recommendation-card'}>
               <div className="recommendation-card-top">
@@ -518,9 +522,58 @@ function Recommendations({ recommendations, onFocus, onAssessment }) {
                 Use as my focus
                 <Icon name="arrow" size={15} />
               </button>
+              <button
+                type="button"
+                onClick={() => toggleComparison(rec.id)}
+                aria-pressed={comparedCareers.includes(rec.id)}
+                aria-label={comparedCareers.includes(rec.id) ? 'Remove from comparison' : 'Add to comparison'}
+                style={{
+                  padding: 0,
+                  border: 0,
+                  background: 'transparent',
+                  color: comparedCareers.includes(rec.id) ? 'var(--blue)' : 'var(--muted)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                {comparedCareers.includes(rec.id) ? 'Compared' : 'Compare'}
+              </button>
             </article>
           ))}
         </div>
+        {comparedCareers.length > 0 && (
+          <section className="app-page" style={{ marginTop: 28 }}>
+            <div className="page-heading split-heading">
+              <div>
+                <p className="eyebrow">Career comparison</p>
+                <h1>Compare selected careers.</h1>
+                <p>Select up to three careers to compare side by side.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setComparedCareers([])}
+                style={{
+                  padding: '7px 12px',
+                  border: '1px solid var(--rose)',
+                  borderRadius: 8,
+                  background: 'transparent',
+                  color: 'var(--rose)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Clear comparison
+              </button>
+            </div>
+            <CareerComparison careers={recommendations.filter((rec) => comparedCareers.includes(rec.id))} />
+          </section>
+        )}
+        </>
       ) : (
         <EmptyState icon="target" title="Your career matches will appear here" copy="Complete your profile assessment to compare your skills and interests with our sample role profiles." action="Complete assessment" onAction={onAssessment} />
       )}
@@ -528,6 +581,195 @@ function Recommendations({ recommendations, onFocus, onAssessment }) {
   )
 }
 
+
+function difficultyLabel(score) {
+  if (score >= 60) return { label: 'Beginner-friendly', color: 'var(--green)' }
+  if (score >= 30) return { label: 'Moderate effort', color: 'var(--amber)' }
+  return { label: 'Advanced', color: 'var(--rose)' }
+}
+
+function CareerComparison({ careers }) {
+  if (!careers || careers.length === 0) return null
+
+  return (
+    <section className="dashboard-card" style={{ marginTop: 16 }}>
+      <p className="eyebrow">Side-by-side comparison</p>
+      <div style={{ overflowX: 'auto', marginBottom: 10 }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '12px' }}>
+          <thead>
+            <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--line-strong)' }}>
+              <th style={{ padding: '10px 12px', color: 'var(--muted-soft)', fontWeight: 800, textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.5px', borderBottom: '1px solid var(--line)' }}>
+                Career
+              </th>
+              {careers.map((rec) => (
+                <th
+                  key={rec.id}
+                  style={{
+                    padding: '10px 12px',
+                    color: 'var(--ink)',
+                    fontWeight: 800,
+                    width: '200px',
+                    minWidth: 180,
+                    borderBottom: '1px solid var(--line)',
+                    borderLeft: '1px solid var(--line)',
+                    background: 'var(--card)',
+                  }}
+                >
+                  {rec.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: '1px solid var(--line)' }}>
+              <td style={{ padding: '10px 12px', color: 'var(--muted-soft)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', verticalAlign: 'top' }}>
+                Match score
+              </td>
+              {careers.map((rec) => {
+                const diff = difficultyLabel(rec.score)
+                return (
+                  <td
+                    key={rec.id}
+                    style={{
+                      padding: '10px 12px',
+                      verticalAlign: 'top',
+                      borderLeft: '1px solid var(--line)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      <strong style={{ fontSize: '18px', color: diff.color }}>{rec.score}%</strong>
+                      <span style={{ fontSize: '10px', color: diff.color, fontWeight: 700 }}>{diff.label}</span>
+                    </div>
+                    <div style={{ height: 6, background: '#1e2d4d', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${rec.score}%`, background: diff.color }} />
+                    </div>
+                  </td>
+                )
+              })}
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--line)' }}>
+              <td style={{ padding: '10px 12px', color: 'var(--muted-soft)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', verticalAlign: 'top' }}>
+                Matched skills
+              </td>
+              {careers.map((rec) => {
+                const matched = rec.skillMatches || []
+                return (
+                  <td key={rec.id} style={{ padding: '10px 12px', verticalAlign: 'top', borderLeft: '1px solid var(--line)' }}>
+                    {matched.length ? (
+                      matched.map((s) => (
+                        <span
+                          key={s}
+                          style={{
+                            display: 'inline-block',
+                            padding: '3px 7px',
+                            borderRadius: 11,
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            margin: '0 4px 4px 0',
+                            color: 'var(--green)',
+                            border: '1px solid var(--green-soft)',
+                            background: 'var(--green-soft)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {s}
+                        </span>
+                      ))
+                    ) : (
+                      <span style={{ fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None</span>
+                    )}
+                  </td>
+                )
+              })}
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--line)' }}>
+              <td style={{ padding: '10px 12px', color: 'var(--muted-soft)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', verticalAlign: 'top' }}>
+                Skills to build
+              </td>
+              {careers.map((rec) => {
+                const missing = rec.missingSkills || []
+                return (
+                  <td key={rec.id} style={{ padding: '10px 12px', verticalAlign: 'top', borderLeft: '1px solid var(--line)' }}>
+                    {missing.length ? (
+                      missing.map((s) => (
+                        <span
+                          key={s}
+                          style={{
+                            display: 'inline-block',
+                            padding: '3px 7px',
+                            borderRadius: 11,
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            margin: '0 4px 4px 0',
+                            color: 'var(--rose)',
+                            border: '1px solid var(--rose-soft)',
+                            background: 'var(--rose-soft)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {s}
+                        </span>
+                      ))
+                    ) : (
+                      <span style={{ fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None</span>
+                    )}
+                  </td>
+                )
+              })}
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--line)' }}>
+              <td style={{ padding: '10px 12px', color: 'var(--muted-soft)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', verticalAlign: 'top' }}>
+                Description
+              </td>
+              {careers.map((rec) => (
+                <td key={rec.id} style={{ padding: '10px 12px', verticalAlign: 'top', borderLeft: '1px solid var(--line)', color: 'var(--ink)', lineHeight: 1.5, minWidth: 0 }}>
+                  {rec.description}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td style={{ padding: '10px 12px', color: 'var(--muted-soft)', fontWeight: 800, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', verticalAlign: 'top' }}>
+                Learning steps
+              </td>
+              {careers.map((rec) => {
+                const learning = rec.learning || []
+                return (
+                  <td key={rec.id} style={{ padding: '10px 12px', verticalAlign: 'top', borderLeft: '1px solid var(--line)' }}>
+                    {learning.length ? (
+                      learning.map((s, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 6,
+                            marginBottom: 6,
+                            minWidth: 0,
+                          }}
+                        >
+                          <span style={{ fontSize: '10px', color: 'var(--blue)', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
+                          <span style={{ fontSize: '11px', color: 'var(--ink)', lineHeight: 1.45, minWidth: 0 }}>{s}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None listed</span>
+                    )}
+                  </td>
+                )
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style={{ fontSize: '10px', color: 'var(--muted-soft)', lineHeight: 1.45 }}>
+        Match percentages are local estimates based on your profile data and rule-based matching — not guaranteed job outcomes.
+      </p>
+    </section>
+  )
+}
 
 function SkillDonut({ matched, total }) {
   const safeTotal = Math.max(total, 1)
@@ -902,6 +1144,489 @@ function Roadmap({ tasks, progress, onToggle, onAssessment }) {
   )
 }
 
+function CareerMatchChart({ recommendations }) {
+  if (!recommendations || !recommendations.length) return null;
+  const [sortBy, setSortBy] = useState('match');
+  const [filterCat, setFilterCat] = useState('all');
+  const [expandedId, setExpandedId] = useState(null);
+
+  const categories = [...new Set(recommendations.map((r) => r.category))].filter(Boolean);
+  const sorted = [...recommendations].sort((a, b) => {
+    if (sortBy === 'alpha') return a.title.localeCompare(b.title);
+    return b.score - a.score || a.title.localeCompare(b.title);
+  });
+  const filtered = filterCat === 'all'
+    ? sorted
+    : sorted.filter((r) => r.category === filterCat);
+
+  const scoreColor = (score) => (score >= 60 ? 'var(--green)' : score >= 30 ? 'var(--amber)' : 'var(--rose)');
+
+  const chip = (text, matched) => (
+    <span
+      key={text}
+      style={{
+        display: 'inline-block',
+        padding: '2px 7px',
+        borderRadius: 11,
+        fontSize: '10px',
+        fontWeight: 700,
+        marginRight: 6,
+        color: matched ? 'var(--green)' : 'var(--rose)',
+        border: `1px solid ${matched ? 'var(--green-soft)' : 'var(--rose-soft)'}`,
+        background: matched ? 'var(--green-soft)' : 'var(--rose-soft)',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        maxWidth: 140,
+      }}
+    >
+      {text}
+    </span>
+  );
+
+  return (
+    <section className="dashboard-card">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+        <p className="eyebrow">Career match scores</p>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setSortBy('match')}
+            style={{
+              padding: '4px 9px',
+              border: `1px solid ${sortBy === 'match' ? 'var(--blue)' : 'var(--line)'}`,
+              borderRadius: 8,
+              background: sortBy === 'match' ? 'var(--blue-soft)' : 'transparent',
+              color: sortBy === 'match' ? 'var(--blue)' : 'var(--muted)',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Match
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortBy('alpha')}
+            style={{
+              padding: '4px 9px',
+              border: `1px solid ${sortBy === 'alpha' ? 'var(--blue)' : 'var(--line)'}`,
+              borderRadius: 8,
+              background: sortBy === 'alpha' ? 'var(--blue-soft)' : 'transparent',
+              color: sortBy === 'alpha' ? 'var(--blue)' : 'var(--muted)',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            A-Z
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterCat('all')}
+            style={{
+              padding: '4px 9px',
+              border: `1px solid ${filterCat === 'all' ? 'var(--blue)' : 'var(--line)'}`,
+              borderRadius: 8,
+              background: filterCat === 'all' ? 'var(--blue-soft)' : 'transparent',
+              color: filterCat === 'all' ? 'var(--blue)' : 'var(--muted)',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setFilterCat(cat)}
+              style={{
+                padding: '4px 9px',
+                border: `1px solid ${filterCat === cat ? 'var(--blue)' : 'var(--line)'}`,
+                borderRadius: 8,
+                background: filterCat === cat ? 'var(--blue-soft)' : 'transparent',
+                color: filterCat === cat ? 'var(--blue)' : 'var(--muted)',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding: '0 0 4px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {filtered.map((rec) => {
+          const isExpanded = expandedId === rec.id;
+          const matchedSkills = rec.skillMatches || [];
+          const missingSkills = rec.missingSkills || [];
+          return (
+            <div
+              key={rec.id}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setExpandedId(isExpanded ? null : rec.id)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  padding: '9px 10px',
+                  border: `1px solid ${isExpanded ? 'var(--blue)' : 'var(--line)'}`,
+                  borderRadius: 8,
+                  background: isExpanded ? 'var(--blue-soft)' : 'transparent',
+                  color: 'var(--ink)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all .2s ease',
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--muted)',
+                      minWidth: 150,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {rec.title}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: scoreColor(rec.score),
+                      minWidth: 30,
+                      display: 'inline-block',
+                      fontWeight: 800,
+                    }}
+                  >
+                    {rec.score}%
+                  </span>
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    color: isExpanded ? 'var(--blue)' : 'var(--muted-soft)',
+                    transform: `rotate(${isExpanded ? 180 : 0}deg)`,
+                    transition: 'transform .2s ease',
+                    display: 'inline-block',
+                  }}
+                >
+                  ▾
+                </span>
+              </button>
+              {isExpanded && (
+                <div
+                  style={{
+                    padding: '8px 10px 10px',
+                    borderLeft: `1px solid var(--line)`,
+                    borderRight: `1px solid var(--line)`,
+                    borderBottom: `1px solid var(--line)`,
+                    borderRadius: `0 0 8px 8px`,
+                    background: 'var(--card-lift)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'space-between' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', display: 'block', marginBottom: 4 }}>Matched skills</span>
+                      {matchedSkills.length ? (
+                        matchedSkills.map((s) => chip(s, true))
+                      ) : (
+                        <span style={{ fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None</span>
+                      )}
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', display: 'block', marginBottom: 4 }}>Skills to build</span>
+                      {missingSkills.length ? (
+                        missingSkills.map((s) => chip(s, false))
+                      ) : (
+                        <span style={{ fontSize: '11px', color: 'var(--muted-soft)', fontStyle: 'italic' }}>None</span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '10px', color: 'var(--muted-soft)', display: 'block', marginBottom: 4 }}>Required skills</span>
+                    {rec.skills.map((s) => chip(s, matchedSkills.includes(s)))}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '10px', color: 'var(--muted-soft)', display: 'block', marginBottom: 4 }}>Beginner learning suggestions</span>
+                    {(rec.learning || []).map((s) => (
+                      <span
+                        key={s}
+                        style={{
+                          display: 'inline-block',
+                          padding: '2px 7px',
+                          borderRadius: 11,
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          marginRight: 6,
+                          color: 'var(--blue)',
+                          border: '1px solid var(--blue-soft)',
+                          background: 'var(--blue-soft)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: 140,
+                        }}
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                  <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)', lineHeight: 1.45 }}>
+                    Scores are local estimates based on your profile data, not guaranteed job outcomes.
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function SkillCoverageBar({ matched, missing }) {
+  const total = Math.max(matched + missing, 1);
+  return (
+    <section className="dashboard-card">
+      <p className="eyebrow">Skill coverage</p>
+      <div style={{ padding: '14px 0 4px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: '11px', color: 'var(--muted)', minWidth: 150 }}>Matched skills</span>
+          <div style={{ flex: 1, minWidth: 0, height: 8, background: '#1e2d4d', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(matched / total) * 100}%`, background: 'var(--green)' }} />
+          </div>
+          <strong style={{ fontSize: '11px', color: 'var(--ink)', minWidth: 30, display: 'inline-block' }}>{matched}</strong>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: '11px', color: 'var(--muted)', minWidth: 150 }}>Skills to build</span>
+          <div style={{ flex: 1, minWidth: 0, height: 8, background: '#1e2d4d', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(missing / total) * 100}%`, background: 'var(--amber)' }} />
+          </div>
+          <strong style={{ fontSize: '11px', color: 'var(--ink)', minWidth: 30, display: 'inline-block' }}>{missing}</strong>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function difficultyFor(score) {
+  if (score >= 60) return { label: 'Beginner-friendly', color: 'var(--green)' };
+  if (score >= 30) return { label: 'Moderate effort', color: 'var(--amber)' };
+  return { label: 'Advanced', color: 'var(--rose)' };
+}
+
+function BestCareerMatches({ recommendations, onNavigate }) {
+  if (!recommendations || !recommendations.length) return null;
+  const top = recommendations.slice(0, 3);
+  return (
+    <section className="dashboard-card">
+      <p className="eyebrow">Best matches for you</p>
+      <p style={{ marginBottom: 12, fontSize: '10px', color: 'var(--muted-soft)' }}>
+        Top careers based on your skills, interests, work style, and target role.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {top.map((rec, index) => {
+          const diff = difficultyFor(rec.score);
+          const matchedSkills = rec.skillMatches || [];
+          const missingSkills = rec.missingSkills || [];
+          return (
+            <div
+              key={rec.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px',
+                border: '1px solid var(--line)',
+                borderRadius: 12,
+                background: index === 0 ? 'var(--blue-soft)' : 'var(--card-lift)',
+              }}
+            >
+              <span
+                style={{
+                  width: 26,
+                  height: 26,
+                  display: 'grid',
+                  placeItems: 'center',
+                  borderRadius: 8,
+                  background: index === 0 ? 'var(--blue)' : '#1e2d4d',
+                  color: 'white',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  flexShrink: 0,
+                }}
+              >
+                #{index + 1}
+              </span>
+              <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      fontSize: '14px',
+                      color: 'var(--ink)',
+                      fontWeight: 800,
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {rec.title}
+                  </span>
+                  <strong
+                    style={{
+                      fontSize: '12px',
+                      color: diff.color,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {rec.score}% match
+                  </strong>
+                </div>
+                <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--muted)', lineHeight: 1.45, minWidth: 0 }}>
+                  {rec.description}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--muted-soft)', fontWeight: 700 }}>Difficulty:</span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      color: diff.color,
+                      fontWeight: 800,
+                      padding: '2px 7px',
+                      borderRadius: 11,
+                      border: `1px solid ${diff.color}`,
+                      background: `${diff.color}1a`,
+                    }}
+                  >
+                    {diff.label}
+                  </span>
+                  {matchedSkills.length && (
+                    <>
+                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', fontWeight: 700 }}>{matchedSkills.length} matched</span>
+                      {matchedSkills.slice(0, 4).map((s) => (
+                        <span
+                          key={s}
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 7px',
+                            borderRadius: 11,
+                            fontSize: '9.5px',
+                            fontWeight: 700,
+                            marginRight: 6,
+                            color: 'var(--green)',
+                            border: '1px solid var(--green-soft)',
+                            background: 'var(--green-soft)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: 110,
+                          }}
+                        >
+                          {s}
+                        </span>
+                      ))}
+                      {matchedSkills.length > 4 && <span style={{ fontSize: '9.5px', color: 'var(--muted-soft)' }}>{matchedSkills.length - 4} more</span>}
+                    </>
+                  )}
+                  {missingSkills.length && (
+                    <>
+                      <span style={{ fontSize: '10px', color: 'var(--muted-soft)', fontWeight: 700 }}>{missingSkills.length} to build</span>
+                      {missingSkills.slice(0, 3).map((s) => (
+                        <span
+                          key={s}
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 7px',
+                            borderRadius: 11,
+                            fontSize: '9.5px',
+                            fontWeight: 700,
+                            marginRight: 6,
+                            color: 'var(--rose)',
+                            border: '1px solid var(--rose-soft)',
+                            background: 'var(--rose-soft)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: 110,
+                          }}
+                        >
+                          {s}
+                        </span>
+                      ))}
+                      {missingSkills.length > 3 && <span style={{ fontSize: '9.5px', color: 'var(--muted-soft)' }}>{missingSkills.length - 3} more</span>}
+                    </>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('gaps')}
+                  style={{
+                    padding: '7px 11px',
+                    border: '1px solid var(--line-strong)',
+                    borderRadius: 8,
+                    background: 'transparent',
+                    color: 'var(--ink)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Explore
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('roadmap')}
+                  style={{
+                    padding: '7px 11px',
+                    border: `1px solid var(--blue)`,
+                    borderRadius: 8,
+                    background: 'var(--blue)',
+                    color: 'white',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Open roadmap
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ marginTop: 10, fontSize: '10px', color: 'var(--muted-soft)', lineHeight: 1.4 }}>
+        Match percentages are local estimates based on your profile data and rule-based matching — not guaranteed job outcomes or real AI predictions.
+      </p>
+    </section>
+  );
+}
+
 function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
   const doneCount = tasks.filter((task) => progress[task.id]).length
   const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
@@ -1064,6 +1789,21 @@ function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
               </button>
             </section>
           </div>
+
+          <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr' }}>
+            {recommendations && recommendations.length ? <CareerMatchChart recommendations={recommendations} /> : null}
+            {profile && (
+              <SkillCoverageBar
+                matched={focused?.skillMatches.length || 0}
+                missing={focused?.missingSkills.length || 0}
+              />
+            )}
+          </div>
+
+          {recommendations && recommendations.length ? (
+            <BestCareerMatches recommendations={recommendations} onNavigate={onNavigate} />
+          ) : null}
+
         </>
       ) : (
         <EmptyState icon="sparkles" title="Build your career starting point" copy="Add your skills, interests, education, and work style. We will use transparent local rules to organize your next steps." action="Start assessment" onAction={() => onNavigate('assessment')} />
@@ -1087,6 +1827,20 @@ function Workspace({ profile, recommendations, progress, setProgress, active, on
     setProgress((current) => ({ ...current, [id]: !current[id] }))
   }
 
+  const [comparedCareers, setComparedCareers] = useState([])
+
+  const toggleComparison = (id) => {
+    setComparedCareers((current) => {
+      if (current.includes(id)) {
+        return current.filter((item) => item !== id)
+      }
+      if (current.length >= 3) {
+        return current
+      }
+      return [...current, id]
+    })
+  }
+
   const handleFocus = (id) => {
     onSaveProfile({ ...profile, target: id })
     onNavigate('gaps')
@@ -1096,7 +1850,15 @@ function Workspace({ profile, recommendations, progress, setProgress, active, on
   if (active === 'assessment') {
     page = <Assessment profile={profile} onSave={onSaveProfile} saveState={saveState} />
   } else if (active === 'recommendations') {
-    page = <Recommendations recommendations={recommendations} onFocus={handleFocus} onAssessment={() => onNavigate('assessment')} />
+    page = (
+      <Recommendations
+        recommendations={recommendations}
+        onFocus={handleFocus}
+        onAssessment={() => onNavigate('assessment')}
+        comparedCareers={comparedCareers}
+        toggleComparison={toggleComparison}
+      />
+    )
   } else if (active === 'gaps') {
     page = <Gaps role={focused} onAssessment={() => onNavigate('assessment')} />
   } else if (active === 'roadmap') {
@@ -1186,6 +1948,37 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.roadmap, JSON.stringify(roadmap))
   }, [roadmap])
 
+  const backendLoaded = useRef(false)
+
+  const loadProfile = async () => {
+    if (backendLoaded.current) return
+    backendLoaded.current = true
+    if (profile) return
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/profiles`)
+      if (!response.ok) return
+      const profiles = await response.json()
+      if (!Array.isArray(profiles) || !profiles.length) return
+      const latest = profiles[0]
+      const loaded = {
+        name: latest.name,
+        education: latest.education || '',
+        skills: typeof latest.skills === 'string' ? latest.skills.split(',').filter(Boolean) : Array.isArray(latest.skills) ? latest.skills : [],
+        interests: typeof latest.interests === 'string' ? latest.interests.split(',').filter(Boolean) : Array.isArray(latest.interests) ? latest.interests : [],
+        workStyle: typeof latest.workStyle === 'string' ? latest.workStyle.split(',').filter(Boolean) : Array.isArray(latest.workStyle) ? latest.workStyle : [],
+        target: latest.target || '',
+      }
+      setProfile(loaded)
+      localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(loaded))
+    } catch {
+      // Backend unavailable; continue with localStorage profile (may be null).
+    }
+  }
+
+  useEffect(() => {
+    loadProfile()
+  }, [])
+
   const [saveState, setSaveState] = useState('idle')
 
   const navigate = (next) => {
@@ -1208,20 +2001,27 @@ export default function App() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: nextProfile.name || 'Riya',
+        name: nextProfile.name || '',
         education: nextProfile.education || '',
         skills: Array.isArray(nextProfile.skills) ? nextProfile.skills : [],
         interests: Array.isArray(nextProfile.interests) ? nextProfile.interests : [],
+        workStyle: Array.isArray(nextProfile.workStyle) ? nextProfile.workStyle : (nextProfile.workStyle ? [nextProfile.workStyle] : []),
+        target: nextProfile.target || '',
       }),
     })
 
     if (!response.ok) {
-      throw new Error(`Server returned ${response.status}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `Server returned ${response.status}`)
     }
 
+    const data = await response.json()
     setSaveState('saved')
-  } catch {
-    setSaveState('error')
+    return data
+  } catch (error) {
+    const isConnectionError = error instanceof TypeError || /failed to fetch/i.test(error.message) || /connection/i.test(error.message)
+    setSaveState(isConnectionError ? 'connection_error' : 'error')
+    return null
   }
 }
 
