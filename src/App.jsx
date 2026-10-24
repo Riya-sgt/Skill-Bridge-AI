@@ -582,6 +582,275 @@ function Recommendations({ recommendations, onFocus, onAssessment, comparedCaree
 }
 
 
+function skillPriorityLabel(index) {
+  if (index === 0) return { label: 'High', color: 'var(--rose)' }
+  if (index <= 2) return { label: 'Medium', color: 'var(--amber)' }
+  return { label: 'Low', color: 'var(--green)' }
+}
+
+function SmartSkillGapAnalyzer({ profile, recommendations }) {
+  if (!profile || !recommendations || recommendations.length === 0) {
+    return (
+      <section className="app-page">
+        <div className="page-heading split-heading">
+          <div>
+            <p className="eyebrow">Smart Skill Gap Analyzer</p>
+            <h1>Analyze skill gaps for any career.</h1>
+            <p>Complete your profile to see matched and missing skills for your target careers.</p>
+          </div>
+        </div>
+        <div className="empty-state" style={{ textAlign: 'center', padding: '40px 20px', margin: '20px auto' }}>
+          <p style={{ color: 'var(--muted)', fontSize: '13px' }}>
+            No profile or career data available. Complete the My Profile assessment to get started.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  const [selectedId, setSelectedId] = useState(recommendations[0].id)
+  const selected = recommendations.find((r) => r.id === selectedId) || recommendations[0]
+  const matchedSkills = selected.skillMatches || []
+  const missingSkills = selected.missingSkills || []
+  const totalRequired = selected.skills?.length || 0
+  const coverage = totalRequired ? Math.round((matchedSkills.length / totalRequired) * 100) : 0
+
+  return (
+    <section className="app-page">
+      <div className="page-heading split-heading">
+        <div>
+          <p className="eyebrow">Smart Skill Gap Analyzer</p>
+          <h1>Skill gaps for {selected.title}</h1>
+          <p>See which required skills you already have and which ones to build next.</p>
+        </div>
+        <select
+          value={selectedId}
+          onChange={(event) => setSelectedId(event.target.value)}
+          style={{
+            padding: '8px 12px',
+            border: '1px solid var(--line)',
+            borderRadius: 8,
+            background: '#0f1729',
+            color: 'var(--ink)',
+            fontSize: '13px',
+            cursor: 'pointer',
+            marginLeft: 'auto',
+          }}
+        >
+          {recommendations.map((rec) => (
+            <option key={rec.id} value={rec.id}>
+              {rec.title} — {rec.score}% match
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="overview-metrics" style={{ marginTop: 24 }}>
+        <article style={{ minWidth: 0 }}>
+          <span className="metric-icon blue">
+            <span style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'var(--blue)' }}>
+              <Icon name="target" size={16} />
+            </span>
+          </span>
+          <div style={{ minWidth: 0, display: 'grid', gap: 4, flex: 1 }}>
+            <small>Target career</small>
+            <strong style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.title}</strong>
+          </div>
+        </article>
+        <article style={{ minWidth: 0 }}>
+          <span className="metric-icon green">
+            <span style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'var(--green)' }}>
+              <Icon name="check" size={16} />
+            </span>
+          </span>
+          <div style={{ minWidth: 0, display: 'grid', gap: 4, flex: 1 }}>
+            <small>Skills matched</small>
+            <strong>{matchedSkills.length}</strong>
+          </div>
+        </article>
+        <article style={{ minWidth: 0 }}>
+          <span className="metric-icon amber">
+            <span style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'var(--amber)' }}>
+              <Icon name="trend" size={16} />
+            </span>
+          </span>
+          <div style={{ minWidth: 0, display: 'grid', gap: 4, flex: 1 }}>
+            <small>Skills missing</small>
+            <strong>{missingSkills.length}</strong>
+          </div>
+        </article>
+        <article style={{ minWidth: 0 }}>
+          <span className="metric-icon violet">
+            <span style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: '#a78bfa' }}>
+              <Icon name="chart" size={16} />
+            </span>
+          </span>
+          <div style={{ minWidth: 0, display: 'grid', gap: 4, flex: 1 }}>
+            <small>Skill coverage</small>
+            <strong>{coverage}%</strong>
+          </div>
+        </article>
+      </div>
+
+      <div style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <section className="dashboard-card" style={{ minWidth: 0 }}>
+          <div className="panel-head">
+            <div>
+              <h2 style={{ color: 'var(--ink)', font: '700 14px var(--display)', margin: 0 }}>Matched skills</h2>
+              <p style={{ color: 'var(--muted-soft)', fontSize: '10px', marginTop: 2 }}>Skills you already have for this career</p>
+            </div>
+          </div>
+          <div style={{ padding: '16px 20px', display: 'flex', flexWrap: 'wrap', gap: 8, minWidth: 0 }}>
+            {matchedSkills.length ? (
+              matchedSkills.map((s) => (
+                <span
+                  key={s}
+                  style={{
+                    display: 'inline-block',
+                    padding: '6px 10px',
+                    color: 'var(--green)',
+                    border: '1px solid var(--green-soft)',
+                    borderRadius: 6,
+                    background: 'var(--green-soft)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {s}
+                </span>
+              ))
+            ) : (
+              <p style={{ color: 'var(--muted-soft)', fontSize: '12px', fontStyle: 'italic' }}>No matched skills yet.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="dashboard-card" style={{ minWidth: 0 }}>
+          <div className="panel-head">
+            <div>
+              <h2 style={{ color: 'var(--ink)', font: '700 14px var(--display)', margin: 0 }}>Missing skills</h2>
+              <p style={{ color: 'var(--muted-soft)', fontSize: '10px', marginTop: 2 }}>Skills to develop for this career</p>
+            </div>
+          </div>
+          <div style={{ padding: '16px 20px', minWidth: 0 }}>
+            {missingSkills.length ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+                {missingSkills.map((skill, index) => {
+                  const priority = skillPriorityLabel(index)
+                  return (
+                    <div
+                      key={skill}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '8px',
+                        border: '1px solid var(--line)',
+                        borderRadius: 8,
+                        background: 'var(--card)',
+                        minWidth: 0,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: priority.color,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          padding: '2px 8px',
+                          borderRadius: 11,
+                          border: `1px solid ${priority.color}40`,
+                          background: `${priority.color}15`,
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {priority.label} priority
+                      </span>
+                      <span style={{ fontSize: '12px', color: 'var(--ink)', minWidth: 0, flex: 1 }}>{skill}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--muted-soft)', fontSize: '12px', fontStyle: 'italic' }}>No missing skills — you meet all requirements.</p>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <section className="dashboard-card" style={{ marginTop: 24, minWidth: 0 }}>
+        <div className="panel-head">
+          <div>
+            <h2 style={{ color: 'var(--ink)', font: '700 14px var(--display)', margin: 0 }}>Learning priorities</h2>
+            <p style={{ color: 'var(--muted-soft)', fontSize: '10px', marginTop: 2 }}>Suggested next steps for each missing skill</p>
+          </div>
+        </div>
+        <div style={{ padding: '16px 20px', minWidth: 0 }}>
+          {missingSkills.length ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+              {missingSkills.map((skill, index) => {
+                const priority = skillPriorityLabel(index)
+                const suggestions = {
+                  High: `Start with the fundamentals of ${skill}. Complete one beginner exercise and document your notes.`,
+                  Medium: `Practise ${skill} through a small guided project or tutorial.`,
+                  Low: `Explore ${skill} at your own pace after higher-priority skills are complete.`,
+                }
+                return (
+                  <div
+                    key={skill}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                      padding: '10px',
+                      border: '1px solid var(--line)',
+                      borderRadius: 8,
+                      background: 'var(--card-lift)',
+                      minWidth: 0,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        color: priority.color,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        padding: '2px 8px',
+                        borderRadius: 11,
+                        border: `1px solid ${priority.color}40`,
+                        background: `${priority.color}15`,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                        marginTop: 1,
+                      }}
+                    >
+                      {priority.label}
+                    </span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <strong style={{ color: 'var(--ink)', fontSize: '12px', display: 'block', marginBottom: 3 }}>{skill}</strong>
+                      <p style={{ margin: 0, fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5 }}>{suggestions[priority.label]}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p style={{ color: 'var(--muted-soft)', fontSize: '12px', fontStyle: 'italic' }}>All required skills are matched. Keep building your portfolio.</p>
+          )}
+        </div>
+      </section>
+
+      <p style={{ marginTop: 16, fontSize: '10px', color: 'var(--muted-soft)', lineHeight: 1.45 }}>
+        Coverage = (matched required skills ÷ total required skills) × 100. Match data is rule-based and local — not guaranteed job outcomes.
+      </p>
+    </section>
+  )
+}
+
 function difficultyLabel(score) {
   if (score >= 60) return { label: 'Beginner-friendly', color: 'var(--green)' }
   if (score >= 30) return { label: 'Moderate effort', color: 'var(--amber)' }
@@ -1838,6 +2107,10 @@ function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
 
           {recommendations && recommendations.length ? (
             <BestCareerMatches recommendations={recommendations} onNavigate={onNavigate} />
+          ) : null}
+
+          {profile && recommendations && recommendations.length ? (
+            <SmartSkillGapAnalyzer profile={profile} recommendations={recommendations} />
           ) : null}
 
         </>
