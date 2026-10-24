@@ -1186,6 +1186,42 @@ function CareerMatchChart({ recommendations }) {
 
   return (
     <section className="dashboard-card">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: 12,
+          marginBottom: 20,
+        }}
+      >
+        <div className="dashboard-card">
+          <p className="eyebrow">Top career match</p>
+          <h2 style={{ margin: '8px 0' }}>
+            {sorted[0]?.title || 'Explore careers'}
+          </h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13 }}>
+            Your highest-scoring career based on your profile.
+          </p>
+        </div>
+
+        <div className="dashboard-card">
+          <p className="eyebrow">Match score</p>
+          <h2 style={{ margin: '8px 0', color: 'var(--blue)' }}>
+            {sorted[0]?.score ?? 0}%
+          </h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13 }}>
+            Based on your current skills and interests.
+          </p>
+        </div>
+
+        <div className="dashboard-card">
+          <p className="eyebrow">Careers compared</p>
+          <h2 style={{ margin: '8px 0' }}>{recommendations.length}</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13 }}>
+            Career paths evaluated for your profile.
+          </p>
+        </div>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
         <p className="eyebrow">Career match scores</p>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
