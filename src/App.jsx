@@ -298,7 +298,7 @@ function Assessment({ profile, onSave, saveState }) {
     name: profile?.name || '',
     skills: profile?.skills?.join(', ') || '',
     interests: profile?.interests || [],
-    workStyle: profile?.workStyle || '',
+    workStyle: profile?.workStyle ? [profile?.workStyle] : [],
     education: profile?.education || '',
     target: profile?.target || '',
   })
@@ -315,6 +315,13 @@ function Assessment({ profile, onSave, saveState }) {
     }))
   }
 
+  const toggleWorkStyle = (value) => {
+    setForm((current) => ({
+      ...current,
+      workStyle: current.workStyle.includes(value) ? current.workStyle.filter((item) => item !== value) : [...current.workStyle, value],
+    }))
+  }
+
   const submit = (event) => {
     event.preventDefault()
     const nextErrors = {}
@@ -324,8 +331,8 @@ function Assessment({ profile, onSave, saveState }) {
     if (!form.interests.length) {
       nextErrors.interests = 'Choose at least one interest.'
     }
-    if (!form.workStyle) {
-      nextErrors.workStyle = 'Choose the work style that feels most natural to you.'
+    if (!form.workStyle.length) {
+      nextErrors.workStyle = 'Choose at least one work style that fits you.'
     }
     if (!form.education) {
       nextErrors.education = 'Select your current education level.'
@@ -405,13 +412,17 @@ function Assessment({ profile, onSave, saveState }) {
         <fieldset>
           <legend>Which work style fits you best?</legend>
           <div className="work-style-grid">
-            {workStyleOptions.map((workStyle) => (
-              <label key={workStyle.value} className={form.workStyle === workStyle.value ? 'work-style-option selected' : 'work-style-option'}>
-                <input type="radio" name="work-style" value={workStyle.value} checked={form.workStyle === workStyle.value} onChange={() => set('workStyle', workStyle.value)} />
-                <strong>{workStyle.label}</strong>
-                <small>{workStyle.copy}</small>
-              </label>
-            ))}
+            {workStyleOptions.map((workStyle) => {
+              const value = workStyle.value
+              const selected = form.workStyle.includes(value)
+              return (
+                <label key={workStyle.value} className={selected ? 'work-style-option selected' : 'work-style-option'}>
+                  <input type="checkbox" name="work-style" value={value} checked={selected} onChange={() => toggleWorkStyle(value)} />
+                  <strong>{workStyle.label}</strong>
+                  <small>{workStyle.copy}</small>
+                </label>
+              )
+            })}
           </div>
           {errors.workStyle ? <small className="error">{errors.workStyle}</small> : null}
         </fieldset>
@@ -896,7 +907,7 @@ function Overview({ profile, recommendations, tasks, progress, onNavigate }) {
   const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
   const nextTask = tasks.find((task) => !progress[task.id])
   const focused = recommendations[0]
-  const completeness = [profile?.skills?.length, profile?.interests?.length, profile?.workStyle, profile?.education, profile?.target].filter(Boolean).length
+    const completeness = [profile?.skills?.length, profile?.interests?.length, profile?.workStyle?.length, profile?.education, profile?.target].filter(Boolean).length
   const profilePercent = Math.round((completeness / 5) * 100)
   const heading = profile?.name ? `Welcome back, ${profile.name}.` : 'Your career workspace.'
 

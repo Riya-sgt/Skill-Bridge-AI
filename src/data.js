@@ -252,7 +252,7 @@ export function getRecommendations(profile) {
     .map((role) => {
       const skillMatches = role.skills.filter((skill) => profile.skills.some((userSkill) => userSkill.includes(skill) || skill.includes(userSkill)))
       const interestMatches = role.interests.filter((interest) => profile.interests.includes(interest))
-      const workStyleMatch = Boolean(profile.workStyle && role.workStyles.includes(profile.workStyle))
+       const workStyleMatch = Boolean(profile.workStyle && role.workStyles.includes(profile.workStyle))
       const skillAlignment = Math.round((skillMatches.length / role.skills.length) * 100)
       const interestAlignment = Math.round((interestMatches.length / role.interests.length) * 100)
       const targetAlignment = profile.target === role.id ? 10 : 0
