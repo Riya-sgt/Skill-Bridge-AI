@@ -41,6 +41,9 @@ def init_db():
             conn.execute("ALTER TABLE profiles ADD COLUMN target TEXT")
 
 
+init_db()
+
+
 @app.get("/")
 def home():
     return jsonify({
@@ -77,47 +80,50 @@ def save_profile():
     workStyle = str(workStyle)
     target = str(data.get("target") or "")
 
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id FROM profiles WHERE LOWER(name) = LOWER(?) ORDER BY id DESC LIMIT 1",
-            (name,),
-        )
-        existing = cursor.fetchone()
-        if existing:
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
             cursor.execute(
-                """
-                UPDATE profiles
-                SET name = ?, education = ?, skills = ?, interests = ?, workStyle = ?, target = ?
-                WHERE id = ?
-                """,
-                (
-                    name,
-                    education,
-                    ",".join(map(str, skills)),
-                    ",".join(map(str, interests)),
-                    workStyle,
-                    target,
-                    existing[0],
-                ),
+                "SELECT id FROM profiles WHERE LOWER(name) = LOWER(?) ORDER BY id DESC LIMIT 1",
+                (name,),
             )
-            profile_id = existing[0]
-        else:
-            cursor.execute(
-                """
-                INSERT INTO profiles (name, education, skills, interests, workStyle, target)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    name,
-                    education,
-                    ",".join(map(str, skills)),
-                    ",".join(map(str, interests)),
-                    workStyle,
-                    target,
-                ),
-            )
-            profile_id = cursor.lastrowid
+            existing = cursor.fetchone()
+            if existing:
+                cursor.execute(
+                    """
+                    UPDATE profiles
+                    SET name = ?, education = ?, skills = ?, interests = ?, workStyle = ?, target = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        name,
+                        education,
+                        ",".join(map(str, skills)),
+                        ",".join(map(str, interests)),
+                        workStyle,
+                        target,
+                        existing[0],
+                    ),
+                )
+                profile_id = existing[0]
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO profiles (name, education, skills, interests, workStyle, target)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        name,
+                        education,
+                        ",".join(map(str, skills)),
+                        ",".join(map(str, interests)),
+                        workStyle,
+                        target,
+                    ),
+                )
+                profile_id = cursor.lastrowid
+    except sqlite3.Error:
+        return jsonify({"error": "Failed to save profile"}), 500
 
     return jsonify({
         "status": "success",
