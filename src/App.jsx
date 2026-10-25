@@ -1343,6 +1343,134 @@ function Gaps({ role, onAssessment }) {
           </button>
         </article>
       </div>
+
+      <div className="skill-intelligence-print" aria-label="Printable skill intelligence report">
+        <div className="page-heading split-heading">
+          <div>
+            <p className="eyebrow">Skill intelligence</p>
+            <h1>Skill Intelligence Report</h1>
+            <p>
+              Turn gaps into a plan. Explore your current skill signals, compare them with your target
+              career, and decide what to practise next.
+            </p>
+          </div>
+          <span className="focus-label">
+            <Icon name={role.icon} size={15} />
+            {role.title}
+          </span>
+        </div>
+
+        <div className="gap-overview">
+          <div className="gap-overview-head">
+            <div>
+              <p>Focused career direction</p>
+              <h2>{role.title}</h2>
+            </div>
+            <div className="coverage-track">
+              <div className="coverage-fill" style={{ width: `${alignment}%` }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 14 }}>
+            <div style={{ minWidth: 120 }}>
+              <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Total required skills</p>
+              <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--ink)', fontWeight: 800 }}>{total}</p>
+            </div>
+            <div style={{ minWidth: 120 }}>
+              <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Skills matched</p>
+              <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--green)', fontWeight: 800 }}>{matchedCount}</p>
+            </div>
+            <div style={{ minWidth: 120 }}>
+              <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Skills missing</p>
+              <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--rose)', fontWeight: 800 }}>{missingSkills.length}</p>
+            </div>
+            <div style={{ minWidth: 120 }}>
+              <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted-soft)' }}>Skill coverage</p>
+              <p style={{ margin: '2px 0 0', fontSize: '16px', color: 'var(--blue)', fontWeight: 800 }}>{alignment}%</p>
+            </div>
+          </div>
+        </div>
+
+        {matchedSkills.length > 0 && (
+          <div className="skills-panel">
+            <div className="panel-head">
+              <div>
+                <span className="success-icon">
+                  <Icon name="check" size={16} />
+                </span>
+                <div>
+                  <h2>Strengths you shared</h2>
+                  <p>Skills that match this role's requirements</p>
+                </div>
+              </div>
+              <span>{matchedCount}</span>
+            </div>
+            <div className="skill-chip-list">
+              {matchedSkills.map((skill) => (
+                <span key={skill}>{skill}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {missingSkills.length > 0 && (
+          <div className="skills-panel">
+            <div className="panel-head">
+              <div>
+                <span className="build-icon">
+                  <Icon name="trend" size={16} />
+                </span>
+                <div>
+                  <h2>Skills to build</h2>
+                  <p>Suggested learning priorities</p>
+                </div>
+              </div>
+              <span>{missingSkills.length}</span>
+            </div>
+            <div className="learning-list">
+              {missingSkills.map((skill, index) => {
+                const priority = priorityFor(index)
+                return (
+                  <div className="skill-gap-item" key={skill}>
+                    <div className="skill-gap-heading">
+                      <span className="skill-gap-name">{skill}</span>
+                      <span className={`priority-badge priority-${priority.toLowerCase()}`}>
+                        {priority} priority
+                      </span>
+                    </div>
+                    <p className="skill-gap-description">
+                      {index === 0
+                      ? 'Start here: focus on this skill first.'
+                      : 'Practise this skill through a guided exercise or mini-project.'}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {role.learning && role.learning.length > 0 && (
+          <div className="learning-plan">
+            <p className="eyebrow">Recommended sequence</p>
+            <h2>Build evidence, one skill at a time.</h2>
+            <ol>
+              {role.learning.map((item, index) => (
+                <li key={item}>
+                  <span>{index + 1}</span>
+                  {item}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        <p style={{ marginTop: 24, fontSize: '10px', color: 'var(--muted)', lineHeight: 1.5 }}>
+          This report was generated from your local profile and career-matching data in SkillBridge AI.
+          Match percentages are rule-based estimates based on your skills, interests, work style, and target
+          role — not guaranteed job outcomes or real AI predictions. No personal data is sent to a server
+          unless you explicitly save your profile.
+        </p>
+      </div>
     </section>
   )
 }
