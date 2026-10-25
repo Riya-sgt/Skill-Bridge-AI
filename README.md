@@ -1,55 +1,104 @@
-# SkillBridge AI 🚀
+# SkillBridge AI — Smart Career & Skill Gap Analyzer 🚀
 
-**Discover your career path. Identify skill gaps. Build your future.**
+**Discover your career direction. Identify skill gaps. Build your learning roadmap.**
 
-SkillBridge AI is a career recommendation and skill-gap analysis platform designed to help students understand how their current skills align with career requirements and identify what they can learn next.
+SkillBridge AI is a web-based career guidance platform that helps users explore career opportunities based on their existing skills, interests, work style, and target role. It provides rule-based career recommendations, skill gap analysis, learning priorities, and a 30-day roadmap.
+
+## 🌐 Live Demo
+
+- **Live Website:** https://skill-bridge-ai-sigma-two.vercel.app
+- **GitHub Repository:** https://github.com/Riya-sgt/Skill-Bridge-AI
+- **Backend API:** https://skillbridge-ai-backend-3dwx.onrender.com
 
 ## ✨ Features
 
-- **Career Recommendations:** Explore career options based on your listed skills.
-- **Skill Matching:** Compare your profile skills with sample career requirements.
-- **Skill Gap Analysis:** Identify skills you may need to develop for a selected career.
-- **Skill Intelligence Dashboard:** View skill-match distribution and coverage by requirement.
-- **Learning Resources:** Explore suggested resources for building relevant skills.
-- **30-Day Learning Roadmap:** Follow a structured plan to make progress toward your career goals.
-- **Progress Tracking:** Track your roadmap progress in the application.
+### 1. Overview Dashboard
+- View a summary of your career profile.
+- See your strongest career match and skill coverage.
+- Navigate to the main project modules.
 
-*Note: Skill coverage indicates matches between listed profile skills and sample role requirements. It is not a verified measure of proficiency or job readiness.*
+### 2. My Profile
+- Enter your name and education level.
+- Add existing skills and work interests.
+- Select a preferred work style and target career.
+- Update your profile to explore different career directions.
+
+### 3. Career Matches
+- Explore career recommendations based on profile information.
+- Compare career match scores.
+- Review relevant skills and skills that need improvement.
+- Explore career options and learning roadmaps.
+
+### 4. Smart Skill Gap Analyzer
+- Identify skills that match a selected career.
+- Find missing or underdeveloped skills.
+- View learning priorities and suggested next steps.
+- Review skill coverage for the target role.
+
+### 5. Skill Intelligence
+- Review matched skills and skills to build.
+- Explore a recommended learning sequence.
+- Access suggested learning resources.
+- Print or save a Skill Intelligence report as a PDF.
+
+### 6. 30-Day Roadmap
+- Follow a structured, week-by-week learning plan.
+- Track completed learning tasks.
+- Monitor roadmap progress.
+
+### 7. Career Report
+- Generate a printable career report.
+- Review profile details, career matches, matched skills, and skill gaps.
+- Save the report as a PDF using the browser's print dialog.
 
 ## 🛠️ Technology Stack
 
-| Component | Technology |
-|---|---|
-| Frontend | React, Vite, CSS, JavaScript |
-| Backend | Python, Flask |
-| Data Storage | SQLite |
+**Frontend**
+- React
+- Vite
+- JavaScript
+- HTML and CSS
 
-## 📁 Project Structure
+**Backend**
+- Python
+- Flask
+- Flask-CORS
+
+**Database**
+- SQLite
+
+**Development Tools**
+- Visual Studio Code
+- Git and GitHub
+- Vercel for frontend deployment
+- Render for backend deployment
+
+## 🏗️ Project Structure
 
 ```text
-SkillBridge-AI/
+Skill-Match-AI/
 ├── backend/
-│   └── app.py
-├── public/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── skill_match.db
 ├── src/
-│   ├── assets/
 │   ├── App.jsx
 │   ├── App.css
 │   ├── data.js
 │   ├── Icon.jsx
 │   ├── index.css
 │   └── main.jsx
-├── .gitignore
-├── index.html
+├── public/
 ├── package.json
-├── package-lock.json
-└── vite.config.js
+├── index.html
+└── README.md
 ```
 
-## 💻 Getting Started
+*Note: The SQLite database file may be created locally by the backend. Do not commit private data or local environment files.*
+
+## 💻 Run the Project Locally
 
 ### Prerequisites
-
 - Node.js and npm
 - Python 3
 - Git
@@ -58,7 +107,7 @@ SkillBridge-AI/
 
 ```bash
 git clone https://github.com/Riya-sgt/Skill-Bridge-AI.git
-cd Skill-Bridge-AI
+cd Skill-Match-AI
 ```
 
 ### 2. Install frontend dependencies
@@ -67,55 +116,83 @@ cd Skill-Bridge-AI
 npm install
 ```
 
-### 3. Start the frontend
+### 3. Configure and start the backend
+
+Open a terminal:
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python app.py
+```
+
+The backend normally runs at:
+
+`http://127.0.0.1:5000`
+
+If PowerShell blocks activation, use the Python executable inside the virtual environment directly instead.
+
+### 4. Configure the frontend API URL
+
+Create a `.env.local` file in the project root:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:5000
+```
+
+Keep local environment files out of Git.
+
+### 5. Start the frontend
+
+Open a second terminal in the project root:
 
 ```bash
 npm run dev
 ```
 
-Open the local URL printed in your terminal.
+Open the local URL printed by Vite in your browser.
 
-### 4. Set up and start the backend
-
-Open a second terminal:
+### 6. Build for production
 
 ```bash
-cd backend
-python -m venv .venv
+npm run build
 ```
 
-Activate the virtual environment on Windows:
+The production build is generated in the `dist/` directory.
 
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
+## 🔌 Backend API
 
-Install the backend dependencies required by the project, then start the Flask application:
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/` | Backend status |
+| GET | `/api/health` | Health check |
+| POST | `/api/profile` | Save a profile |
+| GET | `/api/profiles` | Retrieve saved profiles |
 
-```bash
-python app.py
-```
+Profile API availability and persistence depend on the deployed backend and database configuration.
 
-**Backend setup note:** Install the packages listed in your project's backend dependency file, if provided. If no dependency file exists, check `backend/app.py` to identify the required packages before installing them. Configure any required environment variables before starting the backend.
+## 🔒 Data and Privacy
 
-## 🎯 Project Goal
+- Career recommendations are based on local, rule-based matching logic; they are not guaranteed job outcomes or predictions from a trained AI model.
+- The application may retain some progress in the current browser.
+- Backend profile synchronization and persistent database storage should be verified before relying on them for long-term data retention.
+- Never commit credentials, secrets, private user data, or local environment files.
 
-SkillBridge AI aims to make career planning more structured by connecting students' current skills with career requirements and practical learning suggestions.
+## 🚀 Future Improvements
 
-## 🔮 Future Improvements
-
-- More personalized career recommendations
-- Expanded career and skill datasets
-- Improved learning-resource suggestions
-- Enhanced accessibility and mobile responsiveness
-- More detailed progress analytics
+- Reliable cloud profile persistence.
+- More personalized learning resources.
+- Enhanced career analytics.
+- Additional progress tracking and reporting.
 
 ## 👩‍💻 Author
 
-**Riya Malik**
-
+**Riya**  
 B.Tech — Computer Science Engineering (Artificial Intelligence & Machine Learning)
 
-## 📄 License
+## 📄 Disclaimer
 
-No license has been specified for this project yet.
+SkillBridge AI is an educational career guidance project. Its recommendations are informational and should not be treated as a guarantee of employment or career success.
+
