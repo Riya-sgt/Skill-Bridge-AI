@@ -1298,7 +1298,6 @@ function Gaps({ role, onAssessment }) {
           <ol>
             {(role.learning || []).map((item, index) => (
               <li key={item}>
-                <span>{index + 1}</span>
                 {item}
               </li>
             ))}
@@ -1456,7 +1455,6 @@ function Gaps({ role, onAssessment }) {
             <ol>
               {role.learning.map((item, index) => (
                 <li key={item}>
-                  <span>{index + 1}</span>
                   {item}
                 </li>
               ))}
